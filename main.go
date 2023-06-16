@@ -4,18 +4,11 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/szymon676/shareaf/store"
 )
 
 func main() {
 	app := fiber.New()
-	store := store.NewRedisStore()
-
-	store.Set()
-	store.Get()
-	store.Get()
-	store.Get()
-	store.Get()
+	// store := store.NewRedisStore()
 
 	app.Get("/", handleHome)
 
@@ -25,6 +18,6 @@ func main() {
 
 func handleHome(c *fiber.Ctx) error {
 	return c.Render("index.html", fiber.Map{
-		"hello": "world",
+		"wow": "some text 123...",
 	})
 }

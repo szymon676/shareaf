@@ -1,3 +1,21 @@
-{{ .hello }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Welcome to shareaf.</h1>
+    <form>
+        <textarea rows="20" cols="150">Paste your text there.</textarea>
+        <input type="submit" value="Submit">
+    </form>
 
-<h1> Yo </h1>
+    <form>
+        <input type="text" placeholder="name of paste (automatically generated if empty)">
+        <input type="submit" value="Submit">
+    </form>
+    {{ .wow }}
+</body>
+</html>
