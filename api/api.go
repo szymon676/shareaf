@@ -23,19 +23,40 @@ func NewApiHandler(store Store, addr string) *apiHandler {
 func (ah *apiHandler) Run() {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/paste", makeHttpHandler(ah.handleGetPaste)).Methods("GET")
-
+	router.HandleFunc("/pastes", makeHttpHandler(ah.handleGetPaste)).Methods("GET")
+	router.HandleFunc("/pastes", makeHttpHandler(ah.handleSavePaste)).Methods("POST")
 	log.Print("api running on port: ", ah.addr)
 	http.ListenAndServe(ah.addr, router)
 }
 
 func (ah *apiHandler) handleGetPaste(w http.ResponseWriter, r *http.Request) error {
 	name := r.URL.Query().Get("name")
+
 	paste, err := ah.store.RetrievePaste(name)
 	if err != nil {
 		return err
 	}
+
+	if paste == nil {
+		return WriteJSON(404, "couln't retreive a paste ;c", w)
+	}
+
 	return WriteJSON(200, paste, w)
+}
+
+func (ah *apiHandler) handleSavePaste(w http.ResponseWriter, r *http.Request) error {
+	var paste Paste
+	err := json.NewDecoder(r.Body).Decode(&paste)
+	if err != nil {
+		return err
+	}
+
+	err = ah.store.SavePaste(paste.Name, paste.Data)
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(200, "succesfuly created paste", w)
 }
 
 func WriteJSON(code int, data any, w http.ResponseWriter) error {

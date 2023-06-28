@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
@@ -9,8 +10,8 @@ import (
 )
 
 type Store interface {
-	SavePaste(name string, data string) error
-	RetrievePaste(name string) (string, error)
+	SavePaste(name any, data any) error
+	RetrievePaste(name any) (any, error)
 }
 
 type RedisStore struct {
@@ -31,8 +32,13 @@ func NewRedisStore(options RediStoreOptions) *RedisStore {
 
 var ctx = context.Background()
 
-func (rs *RedisStore) SavePaste(name string, data string) error {
-	err := rs.client.Set(ctx, name, data, time.Second*86400).Err()
+func (rs *RedisStore) SavePaste(name any, data any) error {
+	convname, ok := name.(string)
+	if !ok {
+		return errors.New("wrong paste name, please insert again")
+	}
+
+	err := rs.client.Set(ctx, convname, data, time.Second*86400).Err()
 	if err != nil {
 		return err
 	}
@@ -41,8 +47,13 @@ func (rs *RedisStore) SavePaste(name string, data string) error {
 	return nil
 }
 
-func (rs *RedisStore) RetrievePaste(name string) (string, error) {
-	result, err := rs.client.Get(ctx, name).Result()
+func (rs *RedisStore) RetrievePaste(name any) (any, error) {
+	convname, ok := name.(string)
+	if !ok {
+		return nil, errors.New("wrong paste name, please insert again")
+	}
+
+	result, err := rs.client.Get(ctx, convname).Result()
 	if err != nil {
 		return "", err
 	}
