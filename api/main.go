@@ -1,23 +1,14 @@
 package main
 
-import "log"
-
 func main() {
 	rediOptions := RediStoreOptions{
-		Addr:     "localhost:6379",
-		Password: "",
+		Addr:     "containers-us-west-148.railway.app:6377",
+		Password: "y1bdYc5SBR1wv3LHN6ai",
 		DB:       0,
 	}
 
 	rediStore := NewRedisStore(rediOptions)
-	err := rediStore.SavePaste("idkPaste", "some data in here...")
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	paste, err := rediStore.RetrievePaste("idkPaste")
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("paste:", paste)
+	h := NewApiHandler(rediStore, ":3000")
+	h.Run()
 }
