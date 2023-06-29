@@ -1,39 +1,51 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
-	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/template/html/v2"
 )
 
 type apiHandler struct {
-	store Store
-	addr  string
+	store  Store
+	addr   string
+	engine *html.Engine
 }
 
 func NewApiHandler(store Store, addr string) *apiHandler {
+	engine := html.New("./views", ".html")
+
+	engine.Reload(true)
+
 	return &apiHandler{
-		store: store,
-		addr:  addr,
+		store:  store,
+		addr:   addr,
+		engine: engine,
 	}
 }
 
 func (ah *apiHandler) Run() {
-	router := mux.NewRouter()
+	app := fiber.New(fiber.Config{
+		Views: ah.engine,
+	})
 
-	router.HandleFunc("/pastes", makeHttpHandler(ah.handleGetPaste)).Methods("GET")
-	router.HandleFunc("/pastes", makeHttpHandler(ah.handleSavePaste)).Methods("POST")
-	router.HandleFunc("/pastes", makeHttpHandler(ah.handleDeletePaste)).Methods("DELETE")
+	app.Get("/home", ah.handleHome)
+	app.Get("/pastes", ah.handleGetPaste)
+	app.Post("/pastes", ah.handleSavePaste)
+	app.Delete("/pastes", ah.handleDeletePaste)
 
 	log.Print("api running on port: ", ah.addr)
-	http.ListenAndServe(ah.addr, router)
+	app.Listen(ah.addr)
 }
 
-func (ah *apiHandler) handleGetPaste(w http.ResponseWriter, r *http.Request) error {
-	name := r.URL.Query().Get("name")
+func (ah *apiHandler) handleHome(c *fiber.Ctx) error {
+	return c.Render("home", nil)
+}
+
+func (ah *apiHandler) handleGetPaste(c *fiber.Ctx) error {
+	name := c.Query("name")
 
 	paste, err := ah.store.RetrievePaste(name)
 	if err != nil {
@@ -41,21 +53,21 @@ func (ah *apiHandler) handleGetPaste(w http.ResponseWriter, r *http.Request) err
 	}
 
 	if paste == nil {
-		return WriteJSON(404, "couln't retreive a paste ;c", w)
+		return errors.New("couldn't retrieve a paste ;c")
 	}
 
-	return WriteJSON(200, paste, w)
+	return c.JSON(paste)
 }
 
-func (ah *apiHandler) handleSavePaste(w http.ResponseWriter, r *http.Request) error {
+func (ah *apiHandler) handleSavePaste(c *fiber.Ctx) error {
 	var paste Paste
-	err := json.NewDecoder(r.Body).Decode(&paste)
+	err := c.BodyParser(&paste)
 	if err != nil {
 		return err
 	}
 
 	result, _ := ah.store.RetrievePaste(paste.Name)
-	if result != nil {
+	if len(result.(string)) > 0 {
 		return errors.New("paste already exists")
 	}
 
@@ -64,35 +76,14 @@ func (ah *apiHandler) handleSavePaste(w http.ResponseWriter, r *http.Request) er
 		return err
 	}
 
-	return WriteJSON(200, "succesfuly created paste", w)
+	return c.SendString("successfully created paste")
 }
 
-func (ah *apiHandler) handleDeletePaste(w http.ResponseWriter, r *http.Request) error {
-	name := r.URL.Query().Get("name")
+func (ah *apiHandler) handleDeletePaste(c *fiber.Ctx) error {
+	name := c.Query("name")
 	err := ah.store.DeletePaste(name)
 	if err != nil {
 		return err
 	}
-	return WriteJSON(204, "", w)
-}
-
-func WriteJSON(code int, data any, w http.ResponseWriter) error {
-	w.WriteHeader(code)
-	w.Header().Add("Content-Type", "application/json")
-
-	return json.NewEncoder(w).Encode(data)
-}
-
-type apiFunc func(w http.ResponseWriter, r *http.Request) error
-
-type ApiError struct {
-	Error string `json:"error"`
-}
-
-func makeHttpHandler(a apiFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := a(w, r); err != nil {
-			WriteJSON(404, ApiError{Error: err.Error()}, w)
-		}
-	}
+	return c.SendStatus(204)
 }
