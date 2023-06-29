@@ -7,6 +7,6 @@ type RediStoreOptions struct {
 }
 
 type Paste struct {
-	Name any `json:"name"`
-	Data any `json:"data"`
+	Name string `json:"name"`
+	Data any    `json:"data"`
 }

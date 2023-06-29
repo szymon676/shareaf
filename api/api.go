@@ -25,6 +25,8 @@ func (ah *apiHandler) Run() {
 
 	router.HandleFunc("/pastes", makeHttpHandler(ah.handleGetPaste)).Methods("GET")
 	router.HandleFunc("/pastes", makeHttpHandler(ah.handleSavePaste)).Methods("POST")
+	router.HandleFunc("/pastes", makeHttpHandler(ah.handleDeletePaste)).Methods("DELETE")
+
 	log.Print("api running on port: ", ah.addr)
 	http.ListenAndServe(ah.addr, router)
 }
@@ -57,6 +59,15 @@ func (ah *apiHandler) handleSavePaste(w http.ResponseWriter, r *http.Request) er
 	}
 
 	return WriteJSON(200, "succesfuly created paste", w)
+}
+
+func (ah *apiHandler) handleDeletePaste(w http.ResponseWriter, r *http.Request) error {
+	name := r.URL.Query().Get("name")
+	err := ah.store.DeletePaste(name)
+	if err != nil {
+		return err
+	}
+	return WriteJSON(204, "", w)
 }
 
 func WriteJSON(code int, data any, w http.ResponseWriter) error {
