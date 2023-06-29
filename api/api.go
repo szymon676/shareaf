@@ -31,10 +31,10 @@ func (ah *apiHandler) Run() {
 		Views: ah.engine,
 	})
 
-	app.Get("/home", ah.handleHome)
-	app.Get("/pastes", ah.handleGetPaste)
+	app.Get("/", ah.handleHome)
+	app.Get("/:name", ah.handleGetPaste)
 	app.Post("/pastes", ah.handleSavePaste)
-	app.Delete("/pastes", ah.handleDeletePaste)
+	app.Delete("/:name", ah.handleDeletePaste)
 
 	log.Print("api running on port: ", ah.addr)
 	app.Listen(ah.addr)
@@ -45,7 +45,7 @@ func (ah *apiHandler) handleHome(c *fiber.Ctx) error {
 }
 
 func (ah *apiHandler) handleGetPaste(c *fiber.Ctx) error {
-	name := c.Query("name")
+	name := c.Params("name")
 
 	paste, err := ah.store.RetrievePaste(name)
 	if err != nil {
@@ -56,7 +56,7 @@ func (ah *apiHandler) handleGetPaste(c *fiber.Ctx) error {
 		return errors.New("couldn't retrieve a paste ;c")
 	}
 
-	return c.JSON(paste)
+	return c.Render("paste", fiber.Map{"paste": paste, "name": name})
 }
 
 func (ah *apiHandler) handleSavePaste(c *fiber.Ctx) error {
@@ -76,11 +76,11 @@ func (ah *apiHandler) handleSavePaste(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.SendString("successfully created paste")
+	return c.Redirect("/")
 }
 
 func (ah *apiHandler) handleDeletePaste(c *fiber.Ctx) error {
-	name := c.Query("name")
+	name := c.Params("name")
 	err := ah.store.DeletePaste(name)
 	if err != nil {
 		return err

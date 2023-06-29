@@ -2,8 +2,8 @@ package main
 
 func main() {
 	rediOptions := RediStoreOptions{
-		Addr:     "",
-		Password: "",
+		Addr:     "containers-us-west-206.railway.app:6675",
+		Password: "INRgMXHW1Xx0O5xtb9kq",
 		DB:       0,
 	}
 
