@@ -9,7 +9,7 @@ import (
 )
 
 type Store interface {
-	SavePaste(name string, data any) error
+	SavePaste(Paste) error
 	RetrievePaste(name string) (any, error)
 	DeletePaste(name string) error
 }
@@ -32,13 +32,13 @@ func NewRedisStore(options RediStoreOptions) *RedisStore {
 
 var ctx = context.Background()
 
-func (rs *RedisStore) SavePaste(name string, data any) error {
-	err := rs.client.Set(ctx, name, data, time.Second*86400).Err()
+func (rs *RedisStore) SavePaste(paste Paste) error {
+	err := rs.client.Set(ctx, paste.Name, paste.Data, time.Second*paste.Time).Err()
 	if err != nil {
 		return err
 	}
 
-	log.Print("saved paste under name:", name)
+	log.Print("saved paste under name:", paste.Name)
 	return nil
 }
 

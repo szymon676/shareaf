@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 
@@ -53,7 +54,12 @@ func (ah *apiHandler) handleSavePaste(w http.ResponseWriter, r *http.Request) er
 		return err
 	}
 
-	err = ah.store.SavePaste(paste.Name, paste.Data)
+	result, _ := ah.store.RetrievePaste(paste.Name)
+	if result != nil {
+		return errors.New("paste already exists")
+	}
+
+	err = ah.store.SavePaste(paste)
 	if err != nil {
 		return err
 	}

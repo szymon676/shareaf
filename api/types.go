@@ -1,5 +1,7 @@
 package main
 
+import "time"
+
 type RediStoreOptions struct {
 	Addr     string
 	Password string
@@ -7,6 +9,7 @@ type RediStoreOptions struct {
 }
 
 type Paste struct {
-	Name string `json:"name"`
-	Data any    `json:"data"`
+	Name string        `json:"name"`
+	Data any           `json:"data"`
+	Time time.Duration `json:"time"`
 }
