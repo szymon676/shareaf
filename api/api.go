@@ -37,7 +37,7 @@ func (ah *apiHandler) Run() {
 	app.Delete("/:name", ah.handleDeletePaste)
 
 	log.Print("api running on port: ", ah.addr)
-	app.Listen(ah.addr)
+	app.Listen("0.0.0.0:" + ah.addr)
 }
 
 func (ah *apiHandler) handleHome(c *fiber.Ctx) error {
@@ -76,7 +76,7 @@ func (ah *apiHandler) handleSavePaste(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.Redirect("/")
+	return c.Redirect("/" + paste.Name)
 }
 
 func (ah *apiHandler) handleDeletePaste(c *fiber.Ctx) error {

@@ -1,14 +1,20 @@
 package main
 
+import "os"
+
 func main() {
 	rediOptions := RediStoreOptions{
-		Addr:     "containers-us-west-206.railway.app:6675",
-		Password: "INRgMXHW1Xx0O5xtb9kq",
+		Addr:     "",
+		Password: "",
 		DB:       0,
 	}
 
 	rediStore := NewRedisStore(rediOptions)
 
-	h := NewApiHandler(rediStore, ":3000")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8000"
+	}
+	h := NewApiHandler(rediStore, port)
 	h.Run()
 }

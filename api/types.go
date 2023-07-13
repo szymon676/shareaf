@@ -10,6 +10,6 @@ type RediStoreOptions struct {
 
 type Paste struct {
 	Name string        `json:"name"`
-	Data any           `json:"data"`
+	Data string        `json:"data"`
 	Time time.Duration `json:"time"`
 }
